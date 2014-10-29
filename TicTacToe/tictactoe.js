@@ -152,9 +152,11 @@ game = function () {
         scores[row] += player;
         scores[GRID_SIZE + col] += player;
 
-        if (row == col) {
+        if (row === col) {
             scores[2 * GRID_SIZE] += player;
-        } else if (GRID_SIZE - 1 - col == row) {
+        }
+
+        if ((GRID_SIZE - 1 - col) === row) {
             scores[2 * GRID_SIZE + 1] += player;
         }
     };
