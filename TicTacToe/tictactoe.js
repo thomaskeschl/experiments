@@ -174,6 +174,11 @@ game = function () {
                 winner = 'O'
             }
 
+            var stalemate = checkStalemate();
+            if(stalemate) {
+                winner = 'nobody';
+            }
+
             if (winner !== '') {
                 restart = confirm('Winner is ' + winner + '! Restart?');
                 break;
@@ -186,6 +191,11 @@ game = function () {
         }
 
         curPlayer *= -1;
+    };
+
+    var checkStalemate = function() {
+        var merged = [].concat.apply([], data);
+        return !merged.some(function(element){return element === 0;})
     };
 
     return {
