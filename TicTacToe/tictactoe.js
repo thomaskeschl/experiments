@@ -3,7 +3,6 @@ game = function () {
     var GRID_SIZE = 3;
     var data = [];
     var scores = [];
-    var canvas = document.getElementById('viewport');
 
     var Player = function (point, mark) {
         this.point = point;
@@ -37,11 +36,12 @@ game = function () {
     var turn = 0;
 
     var renderer = function () {
-
+        var canvas = document.getElementById('viewport');
         var context = canvas.getContext('2d');
-
         var width = canvas.width = window.innerWidth;
         var height = canvas.height = window.innerHeight;
+        var rowHeight = 0;
+        var colWidth = 0;
 
         var drawLines = function () {
             context.clearRect(0, 0, width, height);
