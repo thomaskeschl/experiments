@@ -43,7 +43,7 @@ game = function () {
         var rowHeight = 0;
         var colWidth = 0;
 
-        var drawLines = function () {
+        var renderBoard = function () {
             context.clearRect(0, 0, width, height);
             context.beginPath();
 
@@ -65,18 +65,18 @@ game = function () {
             context.stroke();
         };
 
-        var drawState = function () {
+        var redraw = function () {
             for (var r = 0; r < GRID_SIZE; r++) {
                 for (var c = 0; c < GRID_SIZE; c++) {
                     var player = data[r][c];
                     if (player !== 0) {
-                        drawPlayer(r, c, player)
+                        renderPlayerMark(r, c, player)
                     }
                 }
             }
         };
 
-        var drawPlayer = function (row, column, player) {
+        var renderPlayerMark = function (row, column, player) {
             clearCell(row, column);
             var dimensions = getCellDimensions(row, column);
             player.drawChit(dimensions.xStart, dimensions.yStart, colWidth, rowHeight, context);
@@ -114,27 +114,27 @@ game = function () {
         var onWindowResize = function () {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            drawLines();
-            drawState();
+            renderBoard();
+            redraw();
         };
 
         window.addEventListener('resize', onWindowResize);
         canvas.addEventListener('click', onCanvasClicked);
 
         return {
-            drawBoard: drawLines,
-            drawPlayer: drawPlayer
+            renderBoard: renderBoard,
+            renderPlayerMark: renderPlayerMark
         };
     }();
 
-    var init = function () {
-        initData();
-        renderer.drawBoard();
+    var initialize = function () {
+        initializeGameData();
+        renderer.renderBoard();
 
         document.addEventListener('cellClick', onCellClicked)
     };
 
-    var initData = function () {
+    var initializeGameData = function () {
         for (var r = 0; r < GRID_SIZE; r++) {
             data[r] = [];
             for (var c = 0; c < GRID_SIZE; c++) {
@@ -159,12 +159,12 @@ game = function () {
             return;
         }
         data[row][col] = curPlayer;
-        renderer.drawPlayer(row, col, curPlayer);
-        updateSums(row, col, curPlayer);
+        renderer.renderPlayerMark(row, col, curPlayer);
+        updateScores(row, col, curPlayer);
         endTurn();
     };
 
-    var updateSums = function (row, col, player) {
+    var updateScores = function (row, col, player) {
         var point = player.point;
         scores[row] += point;
         scores[GRID_SIZE + col] += point;
@@ -204,7 +204,7 @@ game = function () {
         var restart = confirm('Winner is ' + winner + '! Restart?');
 
         if (restart) {
-            init();
+            initialize();
         }
     };
 
@@ -214,7 +214,7 @@ game = function () {
     };
 
     return {
-        init: init
+        init: initialize
     };
 }();
 
