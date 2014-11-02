@@ -112,7 +112,7 @@ game = function () {
                 return;
             }
             data[cell.row][cell.col] = curPlayer;
-            drawState();
+            drawPlayer(cell.row, cell.col, curPlayer);
             updateSums(cell.row, cell.col, curPlayer);
             endTurn();
         };
@@ -124,10 +124,11 @@ game = function () {
             drawState();
         };
 
+        window.addEventListener('resize', onWindowResize);
+
         return {
             drawBoard: drawLines,
-            onBoardClick: onBoardClick,
-            onWindowResize: onWindowResize
+            onBoardClick: onBoardClick
         };
     }();
 
@@ -136,7 +137,6 @@ game = function () {
         renderer.drawBoard();
 
         canvas.addEventListener('click', renderer.onBoardClick);
-        window.addEventListener('resize', renderer.onWindowResize);
     };
 
     var initData = function () {
