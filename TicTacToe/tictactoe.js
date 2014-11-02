@@ -1,11 +1,8 @@
 game = function () {
 
     var GRID_SIZE = 3;
-    var rowHeight = 0;
-    var colWidth = 0;
     var data = [];
     var scores = [];
-    var curPlayer = 0;
     var canvas = document.getElementById('viewport');
 
     var Player = function (point, mark) {
@@ -34,6 +31,10 @@ game = function () {
 
         context.stroke();
     });
+
+    var players = [playerX, playerO];
+    var curPlayer = undefined;
+    var turn = 0;
 
     var renderer = function () {
 
@@ -146,7 +147,8 @@ game = function () {
             scores[s] = 0;
         }
 
-        curPlayer = playerX;
+        curPlayer = players[0];
+        turn = 0;
     };
 
     var onCellClicked = function (event) {
@@ -194,7 +196,8 @@ game = function () {
         if (winner === '' && checkStalemate()) {
             winner = 'nobody';
         } else if (winner === '') {
-            curPlayer = (curPlayer === playerX) ? playerO : playerX;
+            turn++;
+            curPlayer = players[turn % players.length];
             return;
         }
 
