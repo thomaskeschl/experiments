@@ -8,6 +8,33 @@ game = function () {
     var curPlayer = 0;
     var canvas = document.getElementById('viewport');
 
+    var Player = function (point, mark) {
+        this.point = point;
+        this.drawChit = mark;
+    };
+
+    var playerX = new Player(1, function (x, y, xOffset, yOffset, context) {
+        context.beginPath();
+        context.moveTo(x, y);
+        context.lineTo(x + xOffset, y + yOffset);
+        context.moveTo(x + xOffset, y);
+        context.lineTo(x, y + yOffset);
+
+        context.stroke();
+    });
+
+    var playerO = new Player(-1, function (x, y, xOffset, yOffset, context) {
+        var xRadius = xOffset / 2.0;
+        var yRadius = yOffset / 2.0;
+        var centerX = xRadius + x;
+        var centerY = yRadius + y;
+
+        context.beginPath();
+        context.arc(centerX, centerY, Math.min(xRadius, yRadius), 0, 2 * Math.PI);
+
+        context.stroke();
+    });
+
     var renderer = function () {
 
         var context = canvas.getContext('2d');
@@ -16,6 +43,9 @@ game = function () {
         var height = canvas.height = window.innerHeight;
 
         var drawLines = function () {
+            context.clearRect(0, 0, width, height);
+            context.beginPath();
+
             // draw rows
             rowHeight = height / GRID_SIZE;
             for (var r = 1; r < GRID_SIZE; r++) {
@@ -37,45 +67,18 @@ game = function () {
         var drawState = function () {
             for (var r = 0; r < GRID_SIZE; r++) {
                 for (var c = 0; c < GRID_SIZE; c++) {
-                    var cellData = data[r][c];
-                    switch (cellData) {
-                        case 1:
-                            drawX(r, c);
-                            break;
-                        case -1:
-                            drawO(r, c);
-                            break;
-                        case 0:
-                        default:
-                        // do nothing
+                    var player = data[r][c];
+                    if (player !== 0) {
+                        drawPlayer(r, c, player)
                     }
                 }
             }
         };
 
-        var drawX = function (row, column) {
+        var drawPlayer = function (row, column, player) {
             clearCell(row, column);
             var dimensions = getCellDimensions(row, column);
-            context.moveTo(dimensions.xStart, dimensions.yStart);
-            context.lineTo(dimensions.xStart + colWidth, dimensions.yStart + rowHeight);
-            context.moveTo(dimensions.xStart + colWidth, dimensions.yStart);
-            context.lineTo(dimensions.xStart, dimensions.yStart + rowHeight);
-
-            context.stroke();
-        };
-
-        var drawO = function (row, column) {
-            clearCell(row, column);
-            var dimensions = getCellDimensions(row, column);
-            var xRadius = colWidth / 2.0;
-            var yRadius = rowHeight / 2.0;
-            var centerX = xRadius + dimensions.xStart;
-            var centerY = yRadius + dimensions.yStart;
-
-            context.beginPath();
-            context.arc(centerX, centerY, Math.min(xRadius, yRadius), 0, 2 * Math.PI);
-
-            context.stroke();
+            player.drawChit(dimensions.xStart, dimensions.yStart, colWidth, rowHeight, context);
         };
 
         var clearCell = function (row, column) {
@@ -149,52 +152,50 @@ game = function () {
             scores[s] = 0;
         }
 
-        curPlayer = 1;
+        curPlayer = playerX;
     };
 
     var updateSums = function (row, col, player) {
-        scores[row] += player;
-        scores[GRID_SIZE + col] += player;
+        var point = player.point;
+        scores[row] += point;
+        scores[GRID_SIZE + col] += point;
 
         if (row === col) {
-            scores[2 * GRID_SIZE] += player;
+            scores[2 * GRID_SIZE] += point;
         }
 
         if ((GRID_SIZE - 1 - col) === row) {
-            scores[2 * GRID_SIZE + 1] += player;
+            scores[2 * GRID_SIZE + 1] += point;
         }
     };
 
     var endTurn = function () {
         var scoresSize = scores.length;
-        var restart = false;
+        var winner = '';
         for (var i = 0; i < scoresSize; i++) {
             var score = scores[i];
-            var winner = '';
 
             if (score === GRID_SIZE) {
                 winner = 'X';
+                break;
             } else if (score === -1 * GRID_SIZE) {
-                winner = 'O'
-            }
-
-            var stalemate = checkStalemate();
-            if(stalemate) {
-                winner = 'nobody';
-            }
-
-            if (winner !== '') {
-                restart = confirm('Winner is ' + winner + '! Restart?');
+                winner = 'O';
                 break;
             }
         }
 
-        if (restart) {
-            init();
+        if (winner === '' && checkStalemate()) {
+            winner = 'nobody';
+        } else if (winner === '') {
+            curPlayer = (curPlayer === playerX) ? playerO : playerX;
             return;
         }
 
-        curPlayer *= -1;
+        var restart = confirm('Winner is ' + winner + '! Restart?');
+
+        if (restart) {
+            init();
+        }
     };
 
     var checkStalemate = function() {
