@@ -1,12 +1,35 @@
 game = function () {
 
+    /**
+     * The width and height of the grid.
+     * @type {number}
+     */
     var GRID_SIZE = 3;
+
+    /**
+     * Stores which player has marked which square.
+     * @type {Array}
+     */
     var data = [];
+
+    /**
+     * Stores the scores on each row, column and diagonal.
+     * Row scores are in indices [0 - GRID_SIZE-1], Column scores are in [GRID_SIZE - 2*GRID_SIZE] and the diagonals are
+     * in the last two indices.
+     * @type {Array}
+     */
     var scores = [];
 
-    var Player = function (point, mark) {
-        this.point = point;
-        this.drawChit = mark;
+    /**
+     * A player object that stores what the score marker will be for the player, as well as a function that determines
+     * how the mark is made on a canvas.
+     * @param score the number to add to the score array
+     * @param mark the function that will draw this players mark on the board
+     * @constructor
+     */
+    var Player = function (score, mark) {
+        this.score = score;
+        this.renderMark = mark;
     };
 
     var playerX = new Player(1, function (x, y, xOffset, yOffset, context) {
@@ -31,18 +54,66 @@ game = function () {
         context.stroke();
     });
 
+    /**
+     * An array of players in this game.
+     * @type {*[]}
+     */
     var players = [playerX, playerO];
+
+    /**
+     * The current player.
+     * @type {undefined}
+     */
     var curPlayer = undefined;
+
+    /**
+     * The current turn.
+     * @type {number}
+     */
     var turn = 0;
 
+    /**
+     * Renderer is a module that encapsulates all the logic for rendering the game UI.
+     */
     var renderer = function () {
+        /**
+         * The canvas object that will be used to render the game.
+         * @type {HTMLElement}
+         */
         var canvas = document.getElementById('viewport');
+
+        /**
+         * The context used for drawing on the canvas.
+         */
         var context = canvas.getContext('2d');
+
+        /**
+         * The current width of the canvas. Initialized to the width of the window.
+         * @type {Number}
+         */
         var width = canvas.width = window.innerWidth;
+
+        /**
+         * The current height of the canvas. Initialized to the height of the window.
+         * @type {Number}
+         */
         var height = canvas.height = window.innerHeight;
+
+        /**
+         * The current pixel height of a row.
+         * @type {number}
+         */
         var rowHeight = 0;
+
+        /**
+         * The current pixel width of a column.
+         * @type {number}
+         */
         var colWidth = 0;
 
+        /**
+         * Clears the UI and renders a new board.
+         */
         var renderBoard = function () {
             context.clearRect(0, 0, width, height);
             context.beginPath();
@@ -65,6 +136,9 @@ game = function () {
             context.stroke();
         };
 
+        /**
+         * Redraws the board based on the game state.
+         */
         var redraw = function () {
             for (var r = 0; r < GRID_SIZE; r++) {
                 for (var c = 0; c < GRID_SIZE; c++) {
@@ -76,28 +150,40 @@ game = function () {
             }
         };
 
+        /**
+         * Renders a players mark in the given cell.
+         * @param row the index of the cells row
+         * @param column the index of the cells column
+         * @param player the player to draw the mark of
+         */
         var renderPlayerMark = function (row, column, player) {
-            clearCell(row, column);
-            var dimensions = getCellDimensions(row, column);
-            player.drawChit(dimensions.xStart, dimensions.yStart, colWidth, rowHeight, context);
+            var coordinates = getCellTopLeft(row, column);
+            player.renderMark(coordinates.x, coordinates.y, colWidth, rowHeight, context);
         };
 
-        var clearCell = function (row, column) {
-            var dimensions = getCellDimensions(row, column);
-            context.clearRect(dimensions.xStart + 1, dimensions.yStart + 1, colWidth - 2, rowHeight - 2);
-        };
-
-        var getCellDimensions = function (row, column) {
-            var xStart = column * colWidth;
-            var yStart = row * rowHeight;
+        /**
+         * Utility method that gets the x and y coordinates of the top left corner of a given cell.
+         * @param row the index of the cells row
+         * @param column the index of the cells column
+         * @returns {{x: number, y: number}}
+         */
+        var getCellTopLeft = function (row, column) {
+            var x = column * colWidth;
+            var y = row * rowHeight;
 
             return {
-                xStart: xStart,
-                yStart: yStart
+                x: x,
+                y: y
             };
         };
 
-        var getCell = function (pixelX, pixelY) {
+        /**
+         * Utility method that gets the cells row and column indices given a pixel (x,y) coordinate.
+         * @param pixelX the x coordinate
+         * @param pixelY the y coordinate
+         * @returns {{row: number, col: number}}
+         */
+        var getCellIndices = function (pixelX, pixelY) {
             var row = Math.floor(pixelY / rowHeight);
             var col = Math.floor(pixelX / colWidth);
             return {
@@ -106,11 +192,19 @@ game = function () {
             };
         };
 
+        /**
+         * Handles click events on the canvas object by firing a cellClick event with the indices of the cell that was
+         * clicked.
+         * @param event the click event
+         */
         var onCanvasClicked = function (event) {
-            var cell = getCell(event.clientX, event.clientY);
+            var cell = getCellIndices(event.clientX, event.clientY);
             document.dispatchEvent(new CustomEvent('cellClick', {detail: {row: cell.row, col: cell.col}}))
         };
 
+        /**
+         * Handles resize events on the window by recalculating the canvas width and height and redrawing the board.
+         */
         var onWindowResize = function () {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
@@ -127,6 +221,9 @@ game = function () {
         };
     }();
 
+    /**
+     * Initializes the ui, game state and hooks up event listeners needed by the game.
+     */
     var initialize = function () {
         initializeGameData();
         renderer.renderBoard();
@@ -134,6 +231,9 @@ game = function () {
         document.addEventListener('cellClick', onCellClicked)
     };
 
+    /**
+     * Initializes the game state.
+     */
     var initializeGameData = function () {
         for (var r = 0; r < GRID_SIZE; r++) {
             data[r] = [];
@@ -151,6 +251,11 @@ game = function () {
         turn = 0;
     };
 
+    /**
+     * Handles cellClick events by storing the data, telling the renderer to render the mark, updating scores and ending
+     * the turn.
+     * @param event
+     */
     var onCellClicked = function (event) {
         var row = event.detail.row;
         var col = event.detail.col;
@@ -164,8 +269,14 @@ game = function () {
         endTurn();
     };
 
+    /**
+     * Updates the scores for each row, column and diagonal.
+     * @param row the index of the row that was marked
+     * @param col the index of the column that was marked
+     * @param player the player that marked the cell
+     */
     var updateScores = function (row, col, player) {
-        var point = player.point;
+        var point = player.score;
         scores[row] += point;
         scores[GRID_SIZE + col] += point;
 
@@ -178,6 +289,9 @@ game = function () {
         }
     };
 
+    /**
+     * Ends the turn by determining if there was a winner, or a stalemate, or if the game should continue.
+     */
     var endTurn = function () {
         var scoresSize = scores.length;
         var winner = '';
@@ -208,6 +322,10 @@ game = function () {
         }
     };
 
+    /**
+     * Checks whether the board is in a state of stalemate (no more moves available but nobody has won).
+     * @returns {boolean}
+     */
     var checkStalemate = function() {
         var merged = [].concat.apply([], data);
         return !merged.some(function(element){return element === 0;})
