@@ -105,16 +105,9 @@ game = function () {
             };
         };
 
-        var onBoardClick = function (event) {
+        var onCanvasClicked = function (event) {
             var cell = getCell(event.clientX, event.clientY);
-            if (data[cell.row][cell.col] !== 0) {
-                alert('Already marked, choose again.');
-                return;
-            }
-            data[cell.row][cell.col] = curPlayer;
-            drawPlayer(cell.row, cell.col, curPlayer);
-            updateSums(cell.row, cell.col, curPlayer);
-            endTurn();
+            document.dispatchEvent(new CustomEvent('cellClick', {detail: {row: cell.row, col: cell.col}}))
         };
 
         var onWindowResize = function () {
@@ -125,10 +118,11 @@ game = function () {
         };
 
         window.addEventListener('resize', onWindowResize);
+        canvas.addEventListener('click', onCanvasClicked);
 
         return {
             drawBoard: drawLines,
-            onBoardClick: onBoardClick
+            drawPlayer: drawPlayer
         };
     }();
 
@@ -136,7 +130,7 @@ game = function () {
         initData();
         renderer.drawBoard();
 
-        canvas.addEventListener('click', renderer.onBoardClick);
+        document.addEventListener('cellClick', onCellClicked)
     };
 
     var initData = function () {
@@ -153,6 +147,19 @@ game = function () {
         }
 
         curPlayer = playerX;
+    };
+
+    var onCellClicked = function (event) {
+        var row = event.detail.row;
+        var col = event.detail.col;
+        if (data[row][col] !== 0) {
+            alert('Already marked, choose again.');
+            return;
+        }
+        data[row][col] = curPlayer;
+        renderer.drawPlayer(row, col, curPlayer);
+        updateSums(row, col, curPlayer);
+        endTurn();
     };
 
     var updateSums = function (row, col, player) {
