@@ -224,7 +224,7 @@ game = function () {
     /**
      * Initializes the ui, game state and hooks up event listeners needed by the game.
      */
-    var initialize = function () {
+    var startNewGame = function () {
         initializeGameData();
         renderer.renderBoard();
 
@@ -293,46 +293,60 @@ game = function () {
      * Ends the turn by determining if there was a winner, or a stalemate, or if the game should continue.
      */
     var endTurn = function () {
-        var scoresSize = scores.length;
-        var winner = '';
-        for (var i = 0; i < scoresSize; i++) {
-            var score = scores[i];
+        var result = turnResult();
 
-            if (score === GRID_SIZE) {
-                winner = 'X';
-                break;
-            } else if (score === -1 * GRID_SIZE) {
-                winner = 'O';
-                break;
-            }
-        }
-
-        if (winner === '' && checkStalemate()) {
-            winner = 'nobody';
-        } else if (winner === '') {
+        if (result == undefined) {
             turn++;
             curPlayer = players[turn % players.length];
             return;
         }
 
-        var restart = confirm('Winner is ' + winner + '! Restart?');
+        var restart = confirm('Winner is ' + result + '! Restart?');
 
         if (restart) {
-            initialize();
+            startNewGame();
         }
+    };
+
+    /**
+     * Determines the result of the turn.
+     * @returns {undefined} if there is no winner or {string} representing the winner
+     */
+    var turnResult = function () {
+        var result = undefined;
+        var scoresSize = scores.length;
+        for (var i = 0; i < scoresSize; i++) {
+            var score = scores[i];
+
+            if (score === GRID_SIZE) {
+                result = 'X';
+                break;
+            } else if (score === -1 * GRID_SIZE) {
+                result = 'O';
+                break;
+            }
+        }
+
+        if (!result && checkStalemate()) {
+            result = 'nobody';
+        }
+
+        return result;
     };
 
     /**
      * Checks whether the board is in a state of stalemate (no more moves available but nobody has won).
      * @returns {boolean}
      */
-    var checkStalemate = function() {
+    var checkStalemate = function () {
         var merged = [].concat.apply([], data);
-        return !merged.some(function(element){return element === 0;})
+        return !merged.some(function (element) {
+            return element === 0;
+        })
     };
 
     return {
-        init: initialize
+        init: startNewGame
     };
 }();
 
