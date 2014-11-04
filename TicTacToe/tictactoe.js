@@ -23,16 +23,19 @@ game = function () {
     /**
      * A player object that stores what the score marker will be for the player, as well as a function that determines
      * how the mark is made on a canvas.
+     * @constructor
+     * @param name the name of the player
      * @param score the number to add to the score array
      * @param mark the function that will draw this players mark on the board
-     * @constructor
+
      */
-    var Player = function (score, mark) {
+    var Player = function (name, score, mark) {
+        this.name = name;
         this.score = score;
         this.renderMark = mark;
     };
 
-    var playerX = new Player(1, function (x, y, xOffset, yOffset, context) {
+    var playerX = new Player('X', 1, function (x, y, xOffset, yOffset, context) {
         context.beginPath();
         context.moveTo(x, y);
         context.lineTo(x + xOffset, y + yOffset);
@@ -42,7 +45,7 @@ game = function () {
         context.stroke();
     });
 
-    var playerO = new Player(-1, function (x, y, xOffset, yOffset, context) {
+    var playerO = new Player('O', -1, function (x, y, xOffset, yOffset, context) {
         var xRadius = xOffset / 2.0;
         var yRadius = yOffset / 2.0;
         var centerX = xRadius + x;
@@ -317,13 +320,13 @@ game = function () {
         var scoresSize = scores.length;
         for (var i = 0; i < scoresSize; i++) {
             var score = scores[i];
-
-            if (score === GRID_SIZE) {
-                result = 'X';
-                break;
-            } else if (score === -1 * GRID_SIZE) {
-                result = 'O';
-                break;
+            var playersSize = players.length;
+            for (var playerIndex = 0; playerIndex < playersSize; playerIndex++) {
+                var player = players[playerIndex];
+                if (player.score === (score / GRID_SIZE)) {
+                    result = player.name;
+                    break;
+                }
             }
         }
 
