@@ -21,47 +21,10 @@ game = function () {
     var scores = [];
 
     /**
-     * A player object that stores what the score marker will be for the player, as well as a function that determines
-     * how the mark is made on a canvas.
-     * @constructor
-     * @param name the name of the player
-     * @param score the number to add to the score array
-     * @param mark the function that will draw this players mark on the board
-
-     */
-    var Player = function (name, score, mark) {
-        this.name = name;
-        this.score = score;
-        this.renderMark = mark;
-    };
-
-    var playerX = new Player('X', 1, function (x, y, xOffset, yOffset, context) {
-        context.beginPath();
-        context.moveTo(x, y);
-        context.lineTo(x + xOffset, y + yOffset);
-        context.moveTo(x + xOffset, y);
-        context.lineTo(x, y + yOffset);
-
-        context.stroke();
-    });
-
-    var playerO = new Player('O', -1, function (x, y, xOffset, yOffset, context) {
-        var xRadius = xOffset / 2.0;
-        var yRadius = yOffset / 2.0;
-        var centerX = xRadius + x;
-        var centerY = yRadius + y;
-
-        context.beginPath();
-        context.arc(centerX, centerY, Math.min(xRadius, yRadius), 0, 2 * Math.PI);
-
-        context.stroke();
-    });
-
-    /**
      * An array of players in this game.
-     * @type {*[]}
+     * @type {Array}
      */
-    var players = [playerX, playerO];
+    var players = [];
 
     /**
      * The current player.
@@ -225,13 +188,25 @@ game = function () {
     }();
 
     /**
+     * Register the player with the game.
+     * @param player
+     */
+    var registerPlayer = function (player) {
+        players.push(player);
+
+        if (players.length == 2) {
+            players[0].score = 1;
+            players[1].score = -1;
+            document.dispatchEvent(new CustomEvent('playersReady'));
+        }
+    };
+
+    /**
      * Initializes the ui, game state and hooks up event listeners needed by the game.
      */
     var startNewGame = function () {
         initializeGameData();
         renderer.renderBoard();
-
-        document.addEventListener('cellClick', onCellClicked)
     };
 
     /**
@@ -348,9 +323,47 @@ game = function () {
         })
     };
 
+    document.addEventListener('cellClick', onCellClicked);
+    document.addEventListener('playersReady', startNewGame);
+
     return {
-        init: startNewGame
+        registerPlayer: registerPlayer
     };
 }();
 
-game.init();
+/**
+ * A player object that stores what the score marker will be for the player, as well as a function that determines
+ * how the mark is made on a canvas.
+ * @constructor
+ * @param name the name of the player
+ * @param mark the function that will draw this players mark on the board
+ */
+var Player = function (name, mark) {
+    this.name = name;
+    this.renderMark = mark;
+};
+
+var playerX = new Player('X', function (x, y, xOffset, yOffset, context) {
+    context.beginPath();
+    context.moveTo(x, y);
+    context.lineTo(x + xOffset, y + yOffset);
+    context.moveTo(x + xOffset, y);
+    context.lineTo(x, y + yOffset);
+
+    context.stroke();
+});
+
+var playerO = new Player('O', function (x, y, xOffset, yOffset, context) {
+    var xRadius = xOffset / 2.0;
+    var yRadius = yOffset / 2.0;
+    var centerX = xRadius + x;
+    var centerY = yRadius + y;
+
+    context.beginPath();
+    context.arc(centerX, centerY, Math.min(xRadius, yRadius), 0, 2 * Math.PI);
+
+    context.stroke();
+});
+
+game.registerPlayer(playerX);
+game.registerPlayer(playerO);
