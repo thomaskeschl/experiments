@@ -7,6 +7,7 @@ Getting Started
 ---------------
 
 This project uses npm and bower to manage backend and frontend dependencies, respectively. To run this application:
+
 * `npm install`
 * `bower install`
 * `node server.js`
