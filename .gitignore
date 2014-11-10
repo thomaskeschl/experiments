@@ -1,2 +1,5 @@
 *.iml
 .idea
+
+TicTacToe/node_modules
+TicTacToe/public/libs
