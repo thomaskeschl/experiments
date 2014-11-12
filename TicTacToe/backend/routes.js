@@ -1,4 +1,5 @@
 // app/routes.js
+var path = require('path');
 
 module.exports = function (app) {
 
@@ -12,7 +13,7 @@ module.exports = function (app) {
     // frontend routes =========================================================
     // route to handle all angular requests
     app.get('*', function (req, res) {
-        res.sendFile('./public/main.html'); // load our public/index.html file
+        res.sendFile('main.html', {root: path.join(__dirname, '../public')}); // load our public/index.html file
     });
 
 };
