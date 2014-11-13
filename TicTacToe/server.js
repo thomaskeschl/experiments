@@ -1,5 +1,5 @@
 // modules =================================================
-var express = require('express');
+var express = require('express.io');
 var app = express();
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
@@ -35,12 +35,18 @@ app.use(express.static(__dirname + '/public'));
 // routes ==================================================
 require('./backend/routes')(app); // configure our routes
 
+app.http().io();
+
 // start app ===============================================
 // startup our app at http://localhost:8080
 app.listen(port);
 
 // shoutout to the user                     
 console.log('Magic happens on port ' + port);
+
+app.io.on('connection', function (socket) {
+    console.log('a user connected');
+});
 
 // expose app           
 exports = module.exports = app;                         
