@@ -13,5 +13,4 @@ phonecatApp.controller('PhoneListCtrl', function ($scope) {
         {'name':'Motorola XOOM',
          'snippet':'The Next, Next Generation tablet.'}
     ];
-    $scope.name = "World!"
 });
